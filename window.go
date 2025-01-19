@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
+	"image/color"
+	"strings"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/data/validation"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
@@ -12,8 +16,6 @@ import (
 	"github.com/makiuchi-d/gozxing"
 	nativeDialog "github.com/sqweek/dialog"
 	"golang.design/x/clipboard"
-	"image/color"
-	"strings"
 )
 
 var WMain fyne.Window
@@ -110,7 +112,46 @@ func InitMainWindow() fyne.Window {
 		))
 	ChipInfoTab = container.NewTabItem("Chip Info", chipInfoTabContent)
 
+	aidEntryHint := &widget.Label{Text: "Valid."}
+	aidEntry := &widget.Entry{
+		Text: ConfigInstance.LpacAID,
+		Validator: validation.NewAllStrings(
+			validation.NewRegexp(`^.{32}$`, "The custom AID must be 32 characters long!"),
+			validation.NewRegexp(`[[:xdigit:]]{32}`, "Only hex characters are allowed!"),
+		),
+	}
+	aidEntry.OnChanged = func(s string) {
+		val := aidEntry.Validate()
+		if val != nil {
+			aidEntryHint.SetText(val.Error())
+		} else {
+			// Use last known good value only
+			ConfigInstance.LpacAID = s
+			aidEntryHint.SetText("Valid.")
+		}
+	}
+	setToDefaultAidButton := widget.NewButton(
+		"Default",
+		func() {
+			aidEntry.SetText(AID_DEFAULT)
+		})
+	setTo5berAidButton := widget.NewButton(
+		"5ber",
+		func() {
+			aidEntry.SetText(AID_5BER)
+		})
+
 	settingsTabContent := container.NewVBox(
+		&widget.Label{Text: "lpac ISD-R AID", TextStyle: fyne.TextStyle{Bold: true}},
+		container.NewHBox(container.NewGridWrap(
+			fyne.Size{
+				Width:  320,
+				Height: aidEntry.MinSize().Height,
+			}, aidEntry),
+			setToDefaultAidButton,
+			setTo5berAidButton),
+		aidEntryHint,
+
 		&widget.Label{Text: "lpac debug output", TextStyle: fyne.TextStyle{Bold: true}},
 		&widget.Check{
 			Text:    "Enable env LIBEUICC_DEBUG_HTTP",
@@ -126,6 +167,7 @@ func InitMainWindow() fyne.Window {
 				ConfigInstance.DebugAPDU = b
 			},
 		},
+
 		&widget.Label{Text: "EasyLPAC settings", TextStyle: fyne.TextStyle{Bold: true}},
 		&widget.Check{
 			Text:    "Auto process notification",
@@ -246,8 +288,8 @@ func InitDownloadDialog() dialog.Dialog {
 				fileBuilder := nativeDialog.File().Title("Select a QR Code image file")
 				fileBuilder.Filters = []nativeDialog.FileFilter{
 					{
-						Desc:       "Image (*.png, *.jpg, *.jpeg)",
-						Extensions: []string{"PNG", "JPG", "JPEG"},
+						Desc:       "Image (*.PNG, *.png, *.JPG, *.jpg, *.JPEG, *.jpeg)",
+						Extensions: []string{"PNG", "png", "JPG", "jpg", "JPEG", "jpeg"},
 					},
 					{
 						Desc:       "All files (*.*)",
