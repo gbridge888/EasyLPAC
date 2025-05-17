@@ -1,4 +1,6 @@
 # EasyLPAC
+**Language:** [日本語](./README_ja-JP.md)
+
 [lpac](https://github.com/estkme-group/lpac) GUI Frontend
 
 Download: [GitHub Release](https://github.com/creamlike1024/EasyLPAC/releases/latest)
@@ -11,7 +13,7 @@ NixOS: [NUR](https://github.com/nix-community/NUR#readme) package https://github
 openSUSE: https://software.opensuse.org/package/easylpac ([OBS](https://build.opensuse.org/package/show/home:Psheng/EasyLPAC))
 
 System requirements:
-- Windows7+
+- Windows 10+ (last version that supports Windows 7 was [0.7.7.2](https://github.com/creamlike1024/EasyLPAC/releases/tag/0.7.7.2))
 - latest macOS
 - Linux: `pcscd`, `pcsclite`, `libcurl`(for lpac) and `gtk3dialog` (for EasyLPAC). I'm not sure about dependencies.
 
